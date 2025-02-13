@@ -46,6 +46,7 @@
                             <input id="file-input" onchange="handleFileChange()" class="w-full h-full top-0 left-0 opacity-0 absolute" multiple type="file">
                         </div>
                         <div id="file-list" class="mt-8"></div>
+                        <button class="py-2 px-4 rounded-lg cursor-pointer shadow-md my-2 hover:bg-red-500 bg-red-700" onclick="deletarArquivos()">del files</button>
                     </div>
                 </div>
             </section>
@@ -96,6 +97,13 @@
 
         // Carregar arquivos ao carregar a página
         loadFiles();
+
+        // Deletar arquivos
+        function deletarArquivos() {
+            fetch("http://localhost:3000/delete-all", {
+                method: 'DELETE',
+            }).then(loadFiles);
+        }
 
         // Drag and Drop
         const dropArea = document.getElementById("drop-area");
