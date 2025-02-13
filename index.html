@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+    <link rel="shortcut icon" href="./assets/images-removebg-preview.png" type="image/x-icon">
+    <title>WShare</title>
+</head>
+<body>
+    <style>
+        @keyframes gradientBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    
+        .bg-animation {
+            background: linear-gradient(-45deg, #52caee, #23a6d5, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBackground 15s ease infinite;
+        }
+
+        /* Chrome, Edge and Safari */
+        *::-webkit-scrollbar { height: 10px; width: 10px; }
+        *::-webkit-scrollbar-track { border-radius: 5px; background-color: #DFE9EB; }
+        *::-webkit-scrollbar-track:hover { background-color: #B8C0C2; }
+        *::-webkit-scrollbar-track:active { background-color: #B8C0C2; }
+        *::-webkit-scrollbar-thumb { border-radius: 5px; background-color: #243e75; }
+        *::-webkit-scrollbar-thumb:hover { background-color: #4b80a3; }
+        *::-webkit-scrollbar-thumb:active { background-color: #4b5ba3; }
+
+        * { scrollbar-width: thin; scrollbar-color: #245575 #DFE9EB; }
+    </style>
+    <main>
+        <article>
+            <section>
+                <div class="min-h-screen flex flex-col items-center justify-center relative">
+                    <div class="absolute inset-0 bg-animation"></div>
+                    <div id="particles-js" class="absolute z-20 inset-0"></div>
+                    <h1 class="w-full z-10 opacity-70 text-4xl font-bold flex justify-center my-16">WShare</h1>
+                    <div class="z-30 grow flex flex-col items-center justify-center mb-16">
+                        <div id="drop-area" class="overflow-hidden relative rounded-full p-8 bg-white flex items-center justify-center border-2 border-dashed border-gray-400">
+                            <img class="w-32 mix-blend-darken" src="./assets/images-removebg-preview.png" alt="file">
+                            <input id="file-input" onchange="handleFileChange()" class="w-full h-full top-0 left-0 opacity-0 absolute" multiple type="file">
+                        </div>
+                        <div id="file-list" class="mt-8"></div>
+                    </div>
+                </div>
+            </section>
+        </article>
+    </main>
+    <footer>
+        <div class="min-h-32 flex items-center justify-center bg-white">
+            <p>feito por WELL4551</p>
+        </div>
+    </footer>
+    <script>
+        // Configuração do particles.js
+        particlesJS.load('particles-js', 'particles.json', function() {
+            console.log('Partículas carregadas!');
+        });
+
+        async function loadFiles() {
+            const response = await fetch('http://localhost:3000/files');
+            const files = await response.json();
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '<h2 class="text-2xl font-bold mb-4">Arquivos Compartilhados</h2>';
+            files.forEach(file => {
+                const listItem = document.createElement('div');
+                const link = document.createElement('a');
+                link.href = `http://localhost:3000/download/${file}`;
+                link.textContent = file;
+                link.download = file;
+                link.className = 'text-gray-200 hover:text-white';
+                listItem.appendChild(link);
+                fileList.appendChild(listItem);
+            });
+        }
+
+        async function uploadFiles(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            await fetch('http://localhost:3000/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.text())
+              .then(data => {
+                  console.log(data);
+                  loadFiles(); // Recarrega a lista de arquivos após o upload
+              })
+              .catch(error => console.error('Erro:', error));
+        }
+
+        // Carregar arquivos ao carregar a página
+        loadFiles();
+
+        // Drag and Drop
+        const dropArea = document.getElementById("drop-area");
+        const fileInput = document.getElementById("file-input");
+
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.classList.add("border-blue-500");
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.classList.remove("border-blue-500");
+        });
+
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropArea.classList.remove("border-blue-500");
+            
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileChange();
+            }
+        });
+
+        function handleFileChange() {
+            const input = document.getElementById("file-input");
+            
+            if (input.files.length > 0) {
+                for (let i = 0; i < input.files.length; i++) {
+                    uploadFiles(input.files[i]);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
